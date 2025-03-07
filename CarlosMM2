@@ -1,0 +1,97 @@
+-- Tabela para armazenar os ESPs criados
+local ESPObjects = {}
+
+-- Função para criar ESP
+local function CreateESP(character, color)
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local highlight = Instance.new("Highlight")
+        highlight.Parent = character
+        highlight.FillColor = color
+        highlight.OutlineColor = Color3.new(1, 1, 1)
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        table.insert(ESPObjects, highlight)
+        return highlight
+    end
+end
+
+-- Função para limpar ESPs
+local function ClearESP()
+    for _, esp in ipairs(ESPObjects) do
+        if esp then
+            esp:Destroy()
+        end
+    end
+    ESPObjects = {}
+end
+
+-- Criando GUI manualmente
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 200, 0, 250)
+Frame.Position = UDim2.new(0, 10, 0, 100)
+Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Frame.Parent = ScreenGui
+
+local ESPPlayersButton = Instance.new("TextButton")
+ESPPlayersButton.Size = UDim2.new(0, 180, 0, 30)
+ESPPlayersButton.Position = UDim2.new(0, 10, 0, 10)
+ESPPlayersButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+ESPPlayersButton.Text = "ESP Jogadores [OFF]"
+ESPPlayersButton.Parent = Frame
+
+local ClearESPButton = Instance.new("TextButton")
+ClearESPButton.Size = UDim2.new(0, 180, 0, 30)
+ClearESPButton.Position = UDim2.new(0, 10, 0, 50)
+ClearESPButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+ClearESPButton.Text = "Remover ESP"
+ClearESPButton.Parent = Frame
+
+-- Estado do ESP
+local ESPEnabled = false
+
+-- Função para ativar/desativar ESP em jogadores no MM2
+ESPPlayersButton.MouseButton1Click:Connect(function()
+    ESPEnabled = not ESPEnabled
+    ClearESP()
+    
+    if ESPEnabled then
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if player.Character then
+                local role = "Inocente"  -- Padrão
+                
+                -- Identificar funções dos jogadores no MM2
+                if player.Backpack:FindFirstChild("Gun") or (player.Character:FindFirstChild("Gun") ~= nil) then
+                    role = "Xerife"
+                elseif player.Backpack:FindFirstChild("Knife") or (player.Character:FindFirstChild("Knife") ~= nil) then
+                    role = "Assassino"
+                end
+                
+                -- Definir cor baseada no papel
+                local color = Color3.fromRGB(0, 255, 255)  -- Azul para Inocentes
+                if role == "Xerife" then
+                    color = Color3.fromRGB(0, 255, 0)  -- Verde para Xerifes
+                elseif role == "Assassino" then
+                    color = Color3.fromRGB(255, 0, 0)  -- Vermelho para Assassinos
+                end
+                
+                CreateESP(player.Character, color)
+            end
+        end
+        
+        ESPPlayersButton.Text = "ESP Jogadores [ON]"
+        ESPPlayersButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        ESPPlayersButton.Text = "ESP Jogadores [OFF]"
+        ESPPlayersButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    end
+end)
+
+-- Botão para remover ESPs
+ClearESPButton.MouseButton1Click:Connect(function()
+    ClearESP()
+    ESPPlayersButton.Text = "ESP Jogadores [OFF]"
+    ESPPlayersButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    ESPEnabled = false
+end)
